@@ -1,0 +1,71 @@
+.app-container {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.title {
+  color: #4caf50;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.input-container {
+  width: 100%;  /* Take full width */
+  max-width: 400px;  /* Limit the width for better appearance */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-field {
+  padding: 10px;
+  width: 300px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.deploy-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.deploy-btn:hover {
+  background-color: #45a049;
+}
+
+.interact-btn {
+  background-color: #2196f3;
+  color: white;
+}
+
+.interact-btn:hover {
+  background-color: #1e88e5;
+}
+
+.status {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #333;
+}
