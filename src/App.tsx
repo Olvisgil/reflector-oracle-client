@@ -1,49 +1,50 @@
 import React, { useState } from 'react';
+import { SorobanRpc, Address, xdr} from '@stellar/stellar-sdk';
 import './App.css';
 
 function App() {
   const [contractId, setContractId] = useState('');
-  const [transactionStatus, setTransactionStatus] = useState('');
+  const [timeSeriesData, setTimeSeriesData] = useState<any[]>([]);
+  const [error, setError] = useState('');
 
-  const deployContract = async () => {
-    try {
-      const response = await fetch('/api/deploy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contractId }),
-      });
-      const result = await response.json();
-      setTransactionStatus(`Deployed Successfully: ${result.txHash}`);
-    } catch (error) {
-      if (error instanceof Error) {
-        setTransactionStatus(`Error: ${error.message}`);
-      } else {
-        setTransactionStatus('An unexpected error occurred.');
-      }
-    }
+  const getLedgerKeyScVal = (contractId: string, symbolText: xdr.ScVal) => {
+    return xdr.LedgerKey.contractData({
+      contract: Address.fromString(contractId).toScAddress(),
+      key: symbolText,
+      durability: xdr.ContractDataDurability.persistent()
+    });
   };
 
-  const interactWithContract = async () => {
+  const fetchContractData = async () => {
     try {
-      const response = await fetch('/api/interact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contractId }),
-      });
-      const result = await response.json();
-      setTransactionStatus(`Interaction Successful: ${result.message}`);
-    } catch (error) {
-      if (error instanceof Error) {
-        setTransactionStatus(`Error: ${error.message}`);
-      } else {
-        setTransactionStatus('An unexpected error occurred.');
+      const server = new SorobanRpc.Server('https://mainnet.sorobanrpc.com');
+      
+      // Create ledger key for contract instance
+      const keys = getLedgerKeyScVal(
+        contractId,
+        xdr.ScVal.scvLedgerKeyContractInstance()
+      );
+
+      // Fetch ledger entries
+      const { entries } = await server.getLedgerEntries([keys]);
+      if (!entries || entries.length === 0) {
+        throw new Error('No contract data found');
       }
+
+      const ledgerData = xdr.LedgerEntryData.fromXDR(entries[0].xdr, 'base64');
+      // Process the data similar to the Python example
+      // ... 
+
+      setTimeSeriesData(/* processed data */);
+      setError('');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to fetch data');
     }
   };
 
   return (
     <div className="app-container">
-      <h1 className="title">Reflector Contract Manager</h1>
+      <h1 className="title">Time Series Data Viewer</h1>
       <div className="input-container">
         <input
           type="text"
@@ -52,14 +53,17 @@ function App() {
           placeholder="Enter Contract ID"
           className="input-field"
         />
-        <button className="btn deploy-btn" onClick={deployContract}>
-          Deploy Contract
-        </button>
-        <button className="btn interact-btn" onClick={interactWithContract}>
-          Interact with Contract
+        <button className="btn fetch-btn" onClick={fetchContractData}>
+          Fetch Data
         </button>
       </div>
-      {transactionStatus && <p className="status">{transactionStatus}</p>}
+      {error && <p className="error">{error}</p>}
+      {timeSeriesData.length > 0 && (
+        <div className="data-container">
+          {/* Add visualization component here (e.g., chart.js) */}
+          <pre>{JSON.stringify(timeSeriesData, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 }
