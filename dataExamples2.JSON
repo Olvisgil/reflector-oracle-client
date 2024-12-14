@@ -1,0 +1,13 @@
+{
+  "labels": ["January", "February", "March", "April", "May", "June"],
+  "datasets": [
+    {
+      "label": "Sales ($)",
+      "data": [1200, 1500, 1300, 1700, 1800, 1600],
+      "borderColor": "rgba(54, 162, 235, 1)",
+      "backgroundColor": "rgba(54, 162, 235, 0.2)",
+      "fill": true
+    }
+  ]
+}
+

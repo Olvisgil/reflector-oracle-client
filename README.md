@@ -1,6 +1,6 @@
 # Reflector Oracle Client
 
-A React-based web interface for deploying and interacting with Reflector contracts.
+A React-based web client for viewing, deploying and interacting time series data with Reflector contracts.
 
 ## Overview
 
@@ -10,7 +10,7 @@ The Reflector Oracle Client provides a simple and intuitive interface for managi
 
 - Deploy new Reflector contracts
 - Interact with existing contracts
-- Real-time transaction status updates
+- Real-time status updates
 - User-friendly interface
 
 ## Prerequisites
@@ -85,29 +85,7 @@ The application interacts with the following API endpoints:
 5. Open a Pull Request
 
 ## License
+MIT
 
-[Your chosen license]
 
-## Contact
-
-[Your contact information]
-
-This README provides:
-
-A clear project overview
-Installation and setup instructions
-Development and build commands
-Project structure overview
-API endpoint documentation
-Contributing guidelines
-You should customize the following sections:
-1. Repository URL in the installation instructions
-License information
-Contact information
-Any specific requirements or configurations for your project
-You can also add additional sections as needed, such as:
-Deployment instructions
-Environment variables
-Testing procedures
-Troubleshooting guide
 

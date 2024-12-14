@@ -1,69 +1,136 @@
 import React, { useState } from 'react';
-import { SorobanRpc, Address, xdr} from '@stellar/stellar-sdk';
+import { Line } from 'react-chartjs-2';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
+
 import './App.css';
 
 function App() {
-  const [contractId, setContractId] = useState('');
-  const [timeSeriesData, setTimeSeriesData] = useState<any[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
+  const [chartData, setChartData] = useState({
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    datasets: [
+      {
+        label: 'Time Series Data',
+        data: [10, 20, 15, 30, 25],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        fill: true,
+      },
+    ],
+  });
 
-  const getLedgerKeyScVal = (contractId: string, symbolText: xdr.ScVal) => {
-    return xdr.LedgerKey.contractData({
-      contract: Address.fromString(contractId).toScAddress(),
-      key: symbolText,
-      durability: xdr.ContractDataDurability.persistent()
-    });
+  const [deployStatus, setDeployStatus] = useState('');
+  const [interactStatus, setInteractStatus] = useState('');
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(event.target.value);
   };
 
-  const fetchContractData = async () => {
+  const handleDeployContract = async () => {
     try {
-      const server = new SorobanRpc.Server('https://mainnet.sorobanrpc.com');
-      
-      // Create ledger key for contract instance
-      const keys = getLedgerKeyScVal(
-        contractId,
-        xdr.ScVal.scvLedgerKeyContractInstance()
-      );
+      const response = await fetch('/api/deploy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contractName: 'MyContract',
+          bytecode: '0x...contract bytecode...', // Replace with actual bytecode
+          params: [], // Include any constructor params if necessary
+        }),
+      });
 
-      // Fetch ledger entries
-      const { entries } = await server.getLedgerEntries([keys]);
-      if (!entries || entries.length === 0) {
-        throw new Error('No contract data found');
+      if (!response.ok) {
+        throw new Error('Failed to deploy contract');
       }
 
-      const ledgerData = xdr.LedgerEntryData.fromXDR(entries[0].xdr, 'base64');
-      // Process the data similar to the Python example
-      // ... 
+      const data = await response.json();
+      setDeployStatus(`Deployment successful: Contract address is ${data.contractAddress}`);
+    } catch (err: any) {
+      setDeployStatus(`Error deploying contract: ${err.message}`);
+    }
+  };
 
-      setTimeSeriesData(/* processed data */);
+  const handleInteractContract = async () => {
+    try {
+      const response = await fetch('/api/interact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contractAddress: '0x...contract address...', // Replace with actual contract address
+          method: 'setValue', // Example method name
+          params: [42], // Example parameters for the method
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to interact with contract');
+      }
+
+      const data = await response.json();
+      setInteractStatus(`Interaction successful: ${data.result}`);
+    } catch (err: any) {
+      setInteractStatus(`Error interacting with contract: ${err.message}`);
+    }
+  };
+
+  const handleGenerateChart = () => {
+    try {
+      const parsedData = JSON.parse(inputValue);
+
+      // Validate parsedData
+      if (
+        !Array.isArray(parsedData.labels) ||
+        !Array.isArray(parsedData.datasets) ||
+        parsedData.datasets.some((dataset: any) => !Array.isArray(dataset.data))
+      ) {
+        throw new Error('Invalid data format. Ensure it contains "labels" and "datasets" with "data".');
+      }
+
+      setChartData(parsedData);
       setError('');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch data');
+    } catch (err: any) {
+      setError(`Error: ${err.message}`);
     }
   };
 
   return (
     <div className="app-container">
-      <h1 className="title">Time Series Data Viewer</h1>
+      <h1 className="title">Reflector Time Series Data Viewer</h1>
+
       <div className="input-container">
-        <input
-          type="text"
-          value={contractId}
-          onChange={(e) => setContractId(e.target.value)}
-          placeholder="Enter Contract ID"
-          className="input-field"
+        <textarea
+          className="input"
+          placeholder="Enter JSON data here"
+          value={inputValue}
+          onChange={handleInputChange}
         />
-        <button className="btn fetch-btn" onClick={fetchContractData}>
-          Fetch Data
+        <button className="generate-button" onClick={handleGenerateChart}>
+          Generate Chart
         </button>
       </div>
       {error && <p className="error">{error}</p>}
-      {timeSeriesData.length > 0 && (
-        <div className="data-container">
-          {/* Add visualization component here (e.g., chart.js) */}
-          <pre>{JSON.stringify(timeSeriesData, null, 2)}</pre>
-        </div>
-      )}
+
+      <div className="chart-container">
+        <Line data={chartData} />
+      </div>
+
+      <div className="contract-actions">
+        <button className="deploy-button" onClick={handleDeployContract}>
+          Deploy Contract
+        </button>
+        <p>{deployStatus}</p>
+
+        <button className="interact-button" onClick={handleInteractContract}>
+          Interact with Contract
+        </button>
+        <p>{interactStatus}</p>
+      </div>
     </div>
   );
 }
